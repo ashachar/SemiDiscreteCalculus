@@ -2,8 +2,53 @@ import itertools
 import numpy as np
 import pandas as pd
 
-# Abstract Class
-class SimulateRule:
+class SimulateDetachmentBasedRule:
+    """
+    An abstract class used to represent the simulation of a detachment based rule
+
+    Attributes
+    ----------
+    default_val : float
+        The number with respect to whom vlues are calculated in each iteration of the simulation
+    delta : float
+        The gap between two consecutive numbers in the simulation
+    rule_name : str
+        The name of the rule at stake, e.g. 'product'
+    operator_str : str
+        A representation the rule for the target field name, e.g. '*'
+    operator_exponent : int
+        An indication of the exponent of the function g in the rule, e.g. +1
+    should_include_zero_in_g: boolean
+        Should the value 0 be part of the simulation for the function g
+
+    Methods
+    -------
+    get_detachment(neighborhood_val, static_val)
+        Calculates the numeric detachment of a function f at a point x, where f(x)=static_val
+        and there exists a neighborhood of x where the values of f are neighborhood val
+    get_function_inherent_sign_continuity(detachment, sign)
+        Determines whether the sign of a function whose detachment and sign at a point are given,
+        when considered as a function, is continuous there just by the given assumptions
+    get_neighboring_function_vals(val, detachment, isc, should_include_zero)
+        Simulates a function's neighboring values given its value at a point, the detachment,
+        the inherent sign continuity property, and whether zero should be included
+    apply_operator_to_values(val1, val2)
+        Calculate the result of the operator applied to the values of f and g
+    calculate_operator_detachment(f_detachment, g_detachment, f_sign, g_sign, f_isc, g_isc)
+        Calculates the operator detachments assuming different combinations of sign continuities
+        of f and g, while filtering only the legit ones given the inherent sign continuity of each function
+    add_match_fields():
+        Adding fields that check, for each of the engineered features, whether the feature's value is
+        in accordance with the target field
+    add_conditions():
+        Calculates the conditions for each of the sub-formulas of the rule
+    simulate():
+        The main function that conducts the rule simulation and saves the results
+    engineer_features():
+        Add combinations of the original fields that aid in building the rules' formulas and conditions
+    get_target_feature_name():
+        Getting the column name of the target feature that the rule attempts to predict
+    """
     def __init__(self, rule_name, operator_str, operator_exponent, should_include_zero_in_g):
         self.default_val = 10
         self.delta = self.default_val/3
@@ -94,7 +139,7 @@ class SimulateRule:
     def get_target_feature_name(self):
         return f'(f{self.operator_str}g);'
 
-class SimulateProductRule(SimulateRule):
+class SimulateProductRule(SimulateDetachmentBasedRule):
     def __init__(self):
         super().__init__(rule_name='product', operator_str='*', operator_exponent=+1, should_include_zero_in_g=True)
 
@@ -103,7 +148,7 @@ class SimulateProductRule(SimulateRule):
         self.df['Overall_Condition2'] = ((self.df['f;g;sgn(fg)'] < 0) & (((self.df['f_sc'] == -1) | (self.df['g_sc'] == -1)))).astype(int)
         self.df['Formula1_Condition'] = ((self.df['f;g;sgn(fg)'] >= 0) & ((self.df['f_sc'] == 1) | (self.df['g_sc'] == 1))).astype(int)
 
-class SimulateQutientRule(SimulateRule):
+class SimulateQutientRule(SimulateDetachmentBasedRule):
     def __init__(self):
         super().__init__(rule_name='quotient', operator_str='/', operator_exponent=-1, should_include_zero_in_g=False)
 
