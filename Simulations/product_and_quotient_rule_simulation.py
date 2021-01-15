@@ -2,7 +2,7 @@ import itertools
 import numpy as np
 import pandas as pd
 
-class SimulateDetachmentBasedRule:
+class DetachmentBasedRuleSimulator:
     """
     An abstract class used to represent the simulation of a detachment based rule
 
@@ -139,7 +139,7 @@ class SimulateDetachmentBasedRule:
     def get_target_feature_name(self):
         return f'(f{self.operator_str}g);'
 
-class SimulateProductRule(SimulateDetachmentBasedRule):
+class ProductRuleSimulator(DetachmentBasedRuleSimulator):
     def __init__(self):
         super().__init__(rule_name='product', operator_str='*', operator_exponent=+1, should_include_zero_in_g=True)
 
@@ -148,7 +148,7 @@ class SimulateProductRule(SimulateDetachmentBasedRule):
         self.df['Overall_Condition2'] = ((self.df['f;g;sgn(fg)'] < 0) & (((self.df['f_sc'] == -1) | (self.df['g_sc'] == -1)))).astype(int)
         self.df['Formula1_Condition'] = ((self.df['f;g;sgn(fg)'] >= 0) & ((self.df['f_sc'] == 1) | (self.df['g_sc'] == 1))).astype(int)
 
-class SimulateQutientRule(SimulateDetachmentBasedRule):
+class QuotientRuleSimulator(DetachmentBasedRuleSimulator):
     def __init__(self):
         super().__init__(rule_name='quotient', operator_str='/', operator_exponent=-1, should_include_zero_in_g=False)
 
@@ -158,5 +158,6 @@ class SimulateQutientRule(SimulateDetachmentBasedRule):
         self.df['Formula1_Condition'] = ((self.df['g_isc'] > 0) | ((self.df['f_sc'] > 0) & (self.df['g_sc'] > 0))).astype(int)
         self.df['Formula2_Condition'] = ((self.df['Formula1_Condition'] == 0) & ((self.df['f;g;sgn(fg)'] >= 0) & ((self.df['f_sc'] == 1) | (self.df['g_sc'] == 1)))).astype(int)
 
-SimulateProductRule().simulate()
-SimulateQutientRule().simulate()
+if __name__ == "__main__":
+    ProductRuleSimulator().simulate()
+    QuotientRuleSimulator().simulate()
